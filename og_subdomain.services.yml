@@ -1,0 +1,6 @@
+services:
+  og_subdomain.path_processor:
+    class: Drupal\og_subdomain\PathProcessor\OgSubdomainPathProcessor
+    arguments: ['@settings', '@entity_type.manager']
+    tags:
+      - {name: path_processor_inbound}

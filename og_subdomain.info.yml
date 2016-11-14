@@ -1,0 +1,8 @@
+name: Organic Groups Subdomain
+type: module
+description: Assign subdomains to groups.
+core: 8.x
+package: Organic Groups
+
+dependencies:
+  - og

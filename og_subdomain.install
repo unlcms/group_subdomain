@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function og_subdomain_install() {
+  // Create field storage for the 'og_subdomain' base field without having to run update.php.
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getFieldStorageDefinitions('node')['og_subdomain'];
+  $entity_manager->onFieldStorageDefinitionCreate($definition);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function og_subdomain_uninstall() {
+  $entity_manager = \Drupal::entityManager();
+  $definition = $entity_manager->getLastInstalledFieldStorageDefinitions('node')['og_subdomain'];
+  $entity_manager->onFieldStorageDefinitionDelete($definition);
+}

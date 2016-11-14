@@ -1,0 +1,69 @@
+<?php
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\NodeInterface;
+
+/**
+ * Implements hook_help().
+ */
+function og_subdomain_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.og_subdomain':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Assign subdomains to groups') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for \Drupal\node\NodeForm.
+ */
+function og_subdomain_form_node_form_alter(&$form, FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  $form['og_subdomain_settings'] = array(
+      '#type' => 'details',
+      '#title' => t('Subdomain settings'),
+      '#open' => !empty($form['og_subdomain']['widget'][0]['alias']['#value']),
+      '#group' => 'advanced',
+      '#access' => !empty($form['og_subdomain']['#access']) && $node->hasField('og_subdomain') && $node->get('og_subdomain')->access('edit'),
+      '#attributes' => array(
+          'class' => array('og-subdomain-form'),
+      ),
+      '#weight' => 0,
+  );
+  $form['og_subdomain']['#group'] = 'og_subdomain_settings';
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ */
+function og_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() === 'node') {
+    $fields['og_subdomain'] = BaseFieldDefinition::create('string')
+        ->setDescription(t('The OG Subdomain alias for this piece of content.'))
+        ->setSettings(array(
+            'default_value' => '',
+            'max_length' => 64
+        ))
+        ->setRevisionable(TRUE)
+        ->setTranslatable(TRUE)
+        ->setDisplayOptions('view', [
+            'label' => 'hidden',
+            'type' => 'hidden',
+            'weight' => -5,
+        ])
+        ->setDisplayOptions('form', [
+            'type' => 'string',
+            'weight' => 5,
+            'disabled' => TRUE,
+        ])
+        ->setDisplayConfigurable('form', FALSE)
+        ->setDisplayConfigurable('view', FALSE);
+
+    return $fields;
+  }
+}

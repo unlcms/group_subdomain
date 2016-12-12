@@ -4,7 +4,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
 
 /**
  * Implements hook_help().
@@ -44,7 +44,7 @@ function og_subdomain_form_node_form_alter(&$form, FormStateInterface $form_stat
 function og_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() === 'node') {
     $fields['og_subdomain'] = BaseFieldDefinition::create('string')
-        ->setDescription(t('The OG Subdomain alias for this piece of content.'))
+        ->setDescription(t('The OG Subdomain alias for this site.'))
         ->setSettings(array(
             'default_value' => '',
             'max_length' => 64
@@ -66,4 +66,53 @@ function og_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
 
     return $fields;
   }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function og_subdomain_token_info() {
+    $info['tokens']['node']['og_subdomain'] = array(
+        'name' => t('Group subdomain path'),
+        'description' => t('The subdomain of the organic group the node is in.'),
+    );
+
+    return $info;
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function og_subdomain_tokens($type, $tokens, array $data = array(), array $options = array()) {
+    $replacements = array();
+
+    if ($type == 'node') {
+        // for each token passed in
+        foreach ($tokens as $name => $original) {
+            // if its name is og_subdomain
+            switch ($name) {
+                case 'og_subdomain':
+                    // if the node data is set in the options
+                    if (isset($data['node'])) {
+                        // need to get the organic group that this node belongs to
+                        // this is in the node__og_audience table
+                        // we get the first group audience defined
+                        $og_audience_value = $data['node']->og_audience->getValue();
+                        if (is_array($og_audience_value) && count($og_audience_value) > 0) {
+                            $group_id = $og_audience_value[0]['target_id'];
+
+                            # find the node with this id, and replace the key with its subdomain
+                            if ($group_id != null) {
+                                $group_node = Node::load($group_id);
+                                if (!empty($group_node)) {
+                                    $replacements[$original] = $group_node->og_subdomain->getValue()[0]['value'];
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    return $replacements;
 }

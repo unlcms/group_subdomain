@@ -26,14 +26,19 @@ class OgSubdomainPathProcessor implements InboundPathProcessorInterface, Outboun
 
   private function isPathSubbable($path) {
       $invalid_starting_paths = array(
-          '/system/404',
+          '/system',
           '/admin',
           '/node',
           '/user',
           '/devel',
           '/tips',
           '/tree',
-          '/token'
+          '/token',
+          '/editor',
+          '/themes',
+          '/quickedit',
+          '/contextual',
+          '/history'
       );
 
       foreach($invalid_starting_paths as $invalid_path) {

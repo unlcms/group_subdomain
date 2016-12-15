@@ -3,4 +3,5 @@ services:
     class: Drupal\og_subdomain\PathProcessor\OgSubdomainPathProcessor
     arguments: ['@settings', '@entity_type.manager']
     tags:
-      - {name: path_processor_inbound}
+      - {name: path_processor_inbound, priority: 300}
+      - {name: path_processor_outbound, priority: 100}

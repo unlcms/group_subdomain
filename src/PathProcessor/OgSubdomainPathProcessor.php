@@ -7,73 +7,76 @@ use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Site\Settings;
+
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Processes the inbound path using path alias lookups.
+ * Processes the path using by using subdomains attached to organic groups.
  */
-class OgSubdomainPathProcessor implements OutboundPathProcessorInterface, InboundPathProcessorInterface {
+class OgSubdomainPathProcessor implements InboundPathProcessorInterface, OutboundPathProcessorInterface {
 
-  /**
-   * To list all entity types.
-   * @var EntityTypeManagerInterface
-   */
   protected $entityTypeManager;
 
-  /**
-   * To get the base url from settings.php
-   * @var Settings
-   */
   protected $settings;
 
-  /**
-   * Constructs a PathProcessorAlias object.
-   *
-   * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
-   *   An alias manager for looking up the system path.
-   *
-   * @param \Drupal\Core\Entity\EntityStorageInterface $entity_storage
-   *    Entity storage for looking up the subdomain records on particular entities.
-   */
   public function __construct(Settings $settings, EntityTypeManagerInterface $entity_type_manager) {
     $this->settings = $settings;
     $this->entityTypeManager = $entity_type_manager;
   }
 
-  /**
-   * If the request includes a subdomain, set the path accordingly.
-   */
-  public function processInbound($path, Request $request) {
-    $base_host = $this->settings->get('subdomain_base_url');
-    $host = $request->getHost();
-    $subdomain = substr($host, 0, ((strlen($base_host) + 1) * -1));
+  private function isPathSubbable($path) {
+      $invalid_starting_paths = array(
+          '/system',
+          '/admin',
+          '/node',
+          '/user',
+          '/devel',
+          '/tips',
+          '/tree',
+          '/token',
+          '/editor',
+          '/themes',
+          '/quickedit',
+          '/contextual',
+          '/history'
+      );
 
-    // If we have a subdomain, find the entity with which it is associated and update path.
-    if ($subdomain) {
-      // Get all entity types
-      $entity_types = $this->entityTypeManager->getDefinitions();
-      // For each content entity type...
-//      foreach ($this->subdomainInfo->selectContentEntities($entity_types) as $type_name => $type) {
-//        // If it has a subdomain handler...
-//        if ($type->hasHandlerClass('subdomain')) {
-//          // Get the handler and pass the path and request to it.
-//          $subdomain_handler = $this->entityTypeManager->getHandler($type->id(), 'subdomain');
-//          $subdomain_handler->processInbound($path, $subdomain);
-//        }
-//      }
-    }
-    return $path;
+      foreach($invalid_starting_paths as $invalid_path) {
+          if (strpos($path, $invalid_path) === 0){
+              return FALSE;
+          }
+      }
+
+      return TRUE;
   }
 
   /**
-   * {@inheritdoc}
+   * If the request includes a subdomain, change the path
    */
+  public function processInbound($path, Request $request) {
+      if ($this->isPathSubbable($path)) {
+          $host = $request->getHttpHost();
+          $subdomain = explode('.', $host)[0];
+
+          // if there is a subdomain
+          if (!empty($subdomain) && $subdomain != 'www') {
+              // stick the subdomain in front of the path
+              $path = '/' . $subdomain . $path;
+          }
+      }
+      return $path;
+  }
+
   public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
-    /*if (empty($options['alias'])) {
-      $langcode = isset($options['language']) ? $options['language']->getId() : NULL;
-      $path = $this->aliasManager->getAliasByPath($path, $langcode);
-    }*/
-    return $path;
+      // strip the subdomain from the front of the path, if it is there.
+      if ($this->isPathSubbable($path)) {
+          // remove the subdomain from the front of the path
+          $array = explode('/', $path);
+          array_shift($array);
+          array_shift($array);
+          $path = '/' . implode('/', $array);
+      }
+      return $path;
   }
 
 }

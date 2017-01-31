@@ -2,40 +2,17 @@
 
 namespace Drupal\group_subdomain\PathProcessor;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\Site\Settings;
+use Drupal\group\Entity\Group;
 
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Processes the path using by using subdomains attached to organic groups.
+ * Processes the path using by using subdomains attached to groups.
  */
 class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, OutboundPathProcessorInterface {
-
-  protected $entityTypeManager;
-  protected $settings;
-
-  protected $known_subdomains;
-
-  public function __construct(Settings $settings, EntityTypeManagerInterface $entity_type_manager) {
-    $this->settings = $settings;
-    $this->entityTypeManager = $entity_type_manager;
-
-    // get the known subdomains
-    $query = \Drupal::database()->select('node_field_data', 'nfd');
-    $query->addField('nfd', 'group_subdomain');
-    $query->distinct();
-    $rows = $query->execute()->fetchAll();
-    $this->known_subdomains = array();
-    foreach ($rows as $row) {
-      if (!empty($row->group_subdomain)) {
-        $this->known_subdomains[] = $row->group_subdomain;
-      }
-    }
-  }
 
   private function isPathSubbable($path) {
     $invalid_starting_paths = array(
@@ -75,8 +52,13 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
       $subdomain = explode('.', $host)[0];
 
       // if there is a subdomain
-      if (!empty($subdomain) && $subdomain != 'www') {
-        if (in_array($subdomain, $this->known_subdomains)) {
+      if (!empty($subdomain) && $subdomain !== 'www') {
+        $group_path = \Drupal::service('path.alias_manager')->getPathByAlias('/' . $subdomain);
+        if (preg_match('/group\/(\d+)/', $group_path, $matches)) {
+          $group = Group::load($matches[1]);
+        }
+
+        if ($group) {
           // stick the subdomain in front of the path
           $path = '/' . $subdomain . $path;
         }
@@ -90,10 +72,17 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
     if ($this->isPathSubbable($path)) {
       // remove the subdomain from the front of the path, if it matches a known subdomain
       $array = explode('/', $path);
-      if (count($array) >= 2 && in_array($array[1], $this->known_subdomains)) {
+
+      $group_path = \Drupal::service('path.alias_manager')->getPathByAlias('/' . $array[1]);
+      if (preg_match('/group\/(\d+)/', $group_path, $matches)) {
+        $group = Group::load($matches[1]);
+      }
+
+      if (count($array) >= 2 && $group) {
         array_shift($array);
         array_shift($array);
         $path = '/' . implode('/', $array);
+        // TODO do something to set domain in request?
       }
     }
     return $path;

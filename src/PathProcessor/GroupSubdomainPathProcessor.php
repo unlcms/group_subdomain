@@ -31,72 +31,72 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
     $rows = $query->execute()->fetchAll();
     $this->known_subdomains = array();
     foreach ($rows as $row) {
-        if (!empty($row->group_subdomain)) {
-            $this->known_subdomains[] = $row->group_subdomain;
-        }
+      if (!empty($row->group_subdomain)) {
+        $this->known_subdomains[] = $row->group_subdomain;
+      }
     }
   }
 
   private function isPathSubbable($path) {
-      $invalid_starting_paths = array(
-          '/system',
-          '/admin',
-          '/node',
-          '/user',
-          '/devel',
-          '/tips',
-          '/tree',
-          '/token',
-          '/editor',
-          '/themes',
-          '/quickedit',
-          '/contextual',
-          '/history',
-          '/core',
-          '/toolbar',
-          '/entity_reference_autocomplete'
-      );
+    $invalid_starting_paths = array(
+      '/system',
+      '/admin',
+      '/node',
+      '/user',
+      '/devel',
+      '/tips',
+      '/tree',
+      '/token',
+      '/editor',
+      '/themes',
+      '/quickedit',
+      '/contextual',
+      '/history',
+      '/core',
+      '/toolbar',
+      '/entity_reference_autocomplete'
+    );
 
-      foreach($invalid_starting_paths as $invalid_path) {
-          if (strpos($path, $invalid_path) === 0){
-              return FALSE;
-          }
+    foreach ($invalid_starting_paths as $invalid_path) {
+      if (strpos($path, $invalid_path) === 0) {
+        return FALSE;
       }
+    }
 
-      return TRUE;
+    return TRUE;
   }
 
   /**
    * If the request includes a subdomain, change the path
    */
   public function processInbound($path, Request $request) {
-      if ($this->isPathSubbable($path)) {
-          $host = $request->getHttpHost();
-          $subdomain = explode('.', $host)[0];
+    if ($this->isPathSubbable($path)) {
+      $host = $request->getHttpHost();
+      $subdomain = explode('.', $host)[0];
 
-          // if there is a subdomain
-          if (!empty($subdomain) && $subdomain != 'www') {
-              if (in_array($subdomain, $this->known_subdomains)) {
-                  // stick the subdomain in front of the path
-                  $path = '/' . $subdomain . $path;
-              }
-          }
+      // if there is a subdomain
+      if (!empty($subdomain) && $subdomain != 'www') {
+        if (in_array($subdomain, $this->known_subdomains)) {
+          // stick the subdomain in front of the path
+          $path = '/' . $subdomain . $path;
+        }
       }
-      return $path;
+    }
+    return $path;
   }
 
   public function processOutbound($path, &$options = array(), Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
-      // strip the subdomain from the front of the path, if it is there.
-      if ($this->isPathSubbable($path)) {
-          // remove the subdomain from the front of the path, if it matches a known subdomain
-          $array = explode('/', $path);
-          if (count($array) >= 2 && in_array($array[1], $this->known_subdomains)) {
-              array_shift($array);
-              array_shift($array);
-              $path = '/' . implode('/', $array);
-          }
+    // strip the subdomain from the front of the path, if it is there.
+    if ($this->isPathSubbable($path)) {
+      // remove the subdomain from the front of the path, if it matches a known subdomain
+      $array = explode('/', $path);
+      if (count($array) >= 2 && in_array($array[1], $this->known_subdomains)) {
+        array_shift($array);
+        array_shift($array);
+        $path = '/' . implode('/', $array);
       }
-      return $path;
+    }
+    return $path;
   }
 
 }

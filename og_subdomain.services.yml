@@ -1,6 +1,6 @@
 services:
-  og_subdomain.path_processor:
-    class: Drupal\og_subdomain\PathProcessor\OgSubdomainPathProcessor
+  group_subdomain.path_processor:
+    class: Drupal\group_subdomain\PathProcessor\GroupSubdomainPathProcessor
     arguments: ['@settings', '@entity_type.manager']
     tags:
       - {name: path_processor_inbound, priority: 300}

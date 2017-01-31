@@ -9,9 +9,9 @@ use Drupal\node\Entity\Node;
 /**
  * Implements hook_help().
  */
-function og_subdomain_help($route_name, RouteMatchInterface $route_match) {
+function group_subdomain_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
-    case 'help.page.og_subdomain':
+    case 'help.page.group_subdomain':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Assign subdomains to groups') . '</p>';
@@ -22,29 +22,29 @@ function og_subdomain_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Implements hook_form_BASE_FORM_ID_alter() for \Drupal\node\NodeForm.
  */
-function og_subdomain_form_node_form_alter(&$form, FormStateInterface $form_state) {
+function group_subdomain_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $node = $form_state->getFormObject()->getEntity();
-  $form['og_subdomain_settings'] = array(
+  $form['group_subdomain_settings'] = array(
       '#type' => 'details',
       '#title' => t('Subdomain settings'),
-      '#open' => !empty($form['og_subdomain']['widget'][0]['alias']['#value']),
+      '#open' => !empty($form['group_subdomain']['widget'][0]['alias']['#value']),
       '#group' => 'advanced',
-      '#access' => !empty($form['og_subdomain']['#access']) && $node->hasField('og_subdomain') && $node->get('og_subdomain')->access('edit'),
+      '#access' => !empty($form['group_subdomain']['#access']) && $node->hasField('group_subdomain') && $node->get('group_subdomain')->access('edit'),
       '#attributes' => array(
-          'class' => array('og-subdomain-form'),
+          'class' => array('group-subdomain-form'),
       ),
       '#weight' => 0,
   );
-  $form['og_subdomain']['#group'] = 'og_subdomain_settings';
+  $form['group_subdomain']['#group'] = 'group_subdomain_settings';
 }
 
 /**
  * Implements hook_entity_base_field_info().
  */
-function og_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
+function group_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
   if ($entity_type->id() === 'node') {
-    $fields['og_subdomain'] = BaseFieldDefinition::create('string')
-        ->setDescription(t('The OG Subdomain alias for this site.'))
+    $fields['group_subdomain'] = BaseFieldDefinition::create('string')
+        ->setDescription(t('The Group Subdomain alias for this site.'))
         ->setSettings(array(
             'default_value' => '',
             'max_length' => 64
@@ -71,8 +71,8 @@ function og_subdomain_entity_base_field_info(EntityTypeInterface $entity_type) {
 /**
  * Implements hook_token_info().
  */
-function og_subdomain_token_info() {
-    $info['tokens']['node']['og_subdomain'] = array(
+function group_subdomain_token_info() {
+    $info['tokens']['node']['group_subdomain'] = array(
         'name' => t('Group subdomain path'),
         'description' => t('The subdomain of the organic group the node is in.'),
     );
@@ -83,16 +83,16 @@ function og_subdomain_token_info() {
 /**
  * Implements hook_tokens().
  */
-function og_subdomain_tokens($type, $tokens, array $data = array(), array $options = array())
+function group_subdomain_tokens($type, $tokens, array $data = array(), array $options = array())
 {
     $replacements = array();
 
     if ($type == 'node') {
         // for each token passed in
         foreach ($tokens as $name => $original) {
-            // if its name is og_subdomain
+            // if its name is group_subdomain
             switch ($name) {
-                case 'og_subdomain':
+                case 'group_subdomain':
                     // if the node data is set in the options
                     if (isset($data['node'])) {
                         // need to get the organic group that this node belongs to
@@ -107,12 +107,12 @@ function og_subdomain_tokens($type, $tokens, array $data = array(), array $optio
                             if ($group_id != null) {
                                 $group_node = Node::load($group_id);
                                 if (!empty($group_node)) {
-                                    $replacements[$original] = $group_node->og_subdomain->getValue()[0]['value'];
+                                    $replacements[$original] = $group_node->group_subdomain->getValue()[0]['value'];
                                 }
                             }
                         } else {
                             // this could be a group/site itself. Check if it is
-                            if (!empty($subdomain = $data['node']->og_subdomain->getValue()[0]['value'])) {
+                            if (!empty($subdomain = $data['node']->group_subdomain->getValue()[0]['value'])) {
                                 $replacements[$original] = $subdomain;
                             }
                         }
@@ -128,7 +128,7 @@ function og_subdomain_tokens($type, $tokens, array $data = array(), array $optio
  * Implements hook_link_alter().
  * @param $variables The variables to alter. (text, url, options)
  */
-function og_subdomain_link_alter(&$variables) {
+function group_subdomain_link_alter(&$variables) {
     // get the global base url out
     global $base_url;
 
@@ -151,7 +151,7 @@ function og_subdomain_link_alter(&$variables) {
             if ($group_id != null) {
                 $group_node = Node::load($group_id);
                 if (!empty($group_node)) {
-                    $subdomain = $group_node->og_subdomain->getValue()[0]['value'];
+                    $subdomain = $group_node->group_subdomain->getValue()[0]['value'];
 
                     // replace the subdomain in the base URL with this new one
                     $split_base_url = explode('.', $base_url);
@@ -169,7 +169,7 @@ function og_subdomain_link_alter(&$variables) {
             }
         } else {
             // this could be a group/site itself. Check if it is
-            if (!empty($subdomain = $node->og_subdomain->getValue()[0]['value'])) {
+            if (!empty($subdomain = $node->group_subdomain->getValue()[0]['value'])) {
                 // replace the subdomain in the base URL with this new one
                 $split_base_url = explode('.', $base_url);
                 $split_start = explode('/', $split_base_url[0]);

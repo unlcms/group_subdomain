@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\og_subdomain\PathProcessor;
+namespace Drupal\group_subdomain\PathProcessor;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Processes the path using by using subdomains attached to organic groups.
  */
-class OgSubdomainPathProcessor implements InboundPathProcessorInterface, OutboundPathProcessorInterface {
+class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, OutboundPathProcessorInterface {
 
   protected $entityTypeManager;
   protected $settings;
@@ -26,13 +26,13 @@ class OgSubdomainPathProcessor implements InboundPathProcessorInterface, Outboun
 
     // get the known subdomains
     $query = \Drupal::database()->select('node_field_data', 'nfd');
-    $query->addField('nfd', 'og_subdomain');
+    $query->addField('nfd', 'group_subdomain');
     $query->distinct();
     $rows = $query->execute()->fetchAll();
     $this->known_subdomains = array();
     foreach ($rows as $row) {
-        if (!empty($row->og_subdomain)) {
-            $this->known_subdomains[] = $row->og_subdomain;
+        if (!empty($row->group_subdomain)) {
+            $this->known_subdomains[] = $row->group_subdomain;
         }
     }
   }

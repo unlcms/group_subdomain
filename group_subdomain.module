@@ -2,6 +2,8 @@
 
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\Entity\Node;
+use Drupal\group\Entity\Group;
+use Drupal\group\Entity\GroupContent;
 
 /**
  * Implements hook_help().
@@ -76,46 +78,43 @@ function group_subdomain_tokens($type, $tokens, array $data = array(), array $op
  * Implements hook_link_alter().
  * @param $variables The variables to alter. (text, url, options)
  */
-//function group_subdomain_link_alter(&$variables) {
-//  // get the global base url out
-//  global $base_url;
-//
-//  // find the route we are looking at rendering here
-//  $url = $variables['url'];
-//  $internal_path = $url->getInternalPath();
-//
-//  // if it is a node route, get the organic group that this node belongs to
-//  $matches = array();
-//  if (preg_match('/^node\/(\d+)$/', $internal_path, $matches)) {
-//    $node_id = $matches[1];
-//    $node = Node::load($node_id);
-//    $og_audience = $node->og_audience;
-//    $og_audience_value = $og_audience->getValue();
-//    if (is_array($og_audience_value) && count($og_audience_value) > 0 && array_key_exists('target_id', $og_audience_value[0])) {
-//      // this is a member of a group
-//      $group_id = $og_audience_value[0]['target_id'];
-//
-//      // now get THAT node and figure out its subdomain
-//      if ($group_id != NULL) {
-//        $group_node = Node::load($group_id);
-//        if (!empty($group_node)) {
-//          $subdomain = $group_node->group_subdomain->getValue()[0]['value'];
-//
-//          // replace the subdomain in the base URL with this new one
-//          $split_base_url = explode('.', $base_url);
-//          $split_start = explode('/', $split_base_url[0]);
-//          $split_start[count($split_start) - 1] = $subdomain;
-//          $split_base_url[0] = implode('/', $split_start);
-//          $new_base_url = implode('.', $split_base_url);
-//
-//          $variables['options']['base_url'] = $new_base_url;
-//          $url = $variables['url'];
-//          $url->setAbsolute();
-//          $variables['url'] = $url;
-//          $variables['options']['absolute'] = TRUE;
-//        }
-//      }
-//    }
+function group_subdomain_link_alter(&$variables) {
+  // get the global base url out
+  global $base_url;
+
+  // find the route we are looking at rendering here
+  $url = $variables['url'];
+  $internal_path = $url->getInternalPath();
+
+  // if it is a node route, get the group that this node belongs to
+  $matches = array();
+  if (preg_match('/^node\/(\d+)$/', $internal_path, $matches)) {
+    $node_id = $matches[1];
+    $node = Node::load($node_id);
+    if ($node) {
+      $group_content_array = GroupContent::loadByEntity($node);
+      foreach ($group_content_array as $group_content) {
+        $group = $group_content->getGroup();
+      }
+    }
+    if ($group) {
+      // this is a member of a group
+          $subdomain = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
+
+          // replace the subdomain in the base URL with this new one
+          $split_base_url = explode('.', $base_url);
+          $split_start = explode('/', $split_base_url[0]);
+          $split_start[count($split_start) - 1] = $subdomain;
+          $split_base_url[0] = implode('/', $split_start);
+          $new_base_url = implode('.', $split_base_url);
+
+          $variables['options']['base_url'] = $new_base_url;
+          $url = $variables['url'];
+          $url->setAbsolute();
+          $variables['url'] = $url;
+          $variables['options']['absolute'] = TRUE;
+
+    }
 //    else {
 //      // this could be a group/site itself. Check if it is
 //      if (!empty($subdomain = $node->group_subdomain->getValue()[0]['value'])) {
@@ -133,5 +132,5 @@ function group_subdomain_tokens($type, $tokens, array $data = array(), array $op
 //        $variables['options']['absolute'] = TRUE;
 //      }
 //    }
-//  }
-//}
+  }
+}

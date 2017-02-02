@@ -82,9 +82,14 @@ function group_subdomain_link_alter(&$variables) {
   // get the global base url out
   global $base_url;
 
-  // find the route we are looking at rendering here
-  $url = $variables['url'];
-  $internal_path = $url->getInternalPath();
+  if (!$variables['url']->isRouted()) {
+    // Custom menu link with no internal path.
+    return;
+  }
+  else {
+    // Find the route we are looking at rendering here.
+    $internal_path = $variables['url']->getInternalPath();
+  }
 
   // if it is a node route, get the group that this node belongs to
   $matches = array();
@@ -97,40 +102,41 @@ function group_subdomain_link_alter(&$variables) {
         $group = $group_content->getGroup();
       }
     }
-    if ($group) {
+    if (isset($group) && $group->get('field_use_subdomain')->getValue()[0]['value']) {
       // this is a member of a group
-          $subdomain = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
+      $subdomain = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
 
-          // replace the subdomain in the base URL with this new one
-          $split_base_url = explode('.', $base_url);
-          $split_start = explode('/', $split_base_url[0]);
-          $split_start[count($split_start) - 1] = $subdomain;
-          $split_base_url[0] = implode('/', $split_start);
-          $new_base_url = implode('.', $split_base_url);
+      // replace the subdomain in the base URL with this new one
+      $split_base_url = explode('.', $base_url);
+      $split_start = explode('/', $split_base_url[0]);
+      $split_start[count($split_start) - 1] = $subdomain;
+      $split_base_url[0] = implode('/', $split_start);
+      $new_base_url = implode('.', $split_base_url);
 
-          $variables['options']['base_url'] = $new_base_url;
-          $url = $variables['url'];
-          $url->setAbsolute();
-          $variables['url'] = $url;
-          $variables['options']['absolute'] = TRUE;
+      $variables['options']['base_url'] = $new_base_url;
+      $url = $variables['url'];
+      $url->setAbsolute();
+      $variables['url'] = $url;
+      $variables['options']['absolute'] = TRUE;
 
     }
-//    else {
-//      // this could be a group/site itself. Check if it is
-//      if (!empty($subdomain = $node->group_subdomain->getValue()[0]['value'])) {
-//        // replace the subdomain in the base URL with this new one
-//        $split_base_url = explode('.', $base_url);
-//        $split_start = explode('/', $split_base_url[0]);
-//        $split_start[count($split_start) - 1] = $subdomain;
-//        $split_base_url[0] = implode('/', $split_start);
-//        $new_base_url = implode('.', $split_base_url);
-//
-//        $variables['options']['base_url'] = $new_base_url;
-//        $url = $variables['url'];
-//        $url->setAbsolute();
-//        $variables['url'] = $url;
-//        $variables['options']['absolute'] = TRUE;
-//      }
-//    }
+  }
+  else if (preg_match('/^group\/(\d+)$/', $internal_path, $matches)) {
+    $group = Group::load($matches[1]);
+    if ($group->get('field_use_subdomain')->getValue()[0]['value']) {
+      $subdomain = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
+      // replace the subdomain in the base URL with this new one
+      $split_base_url = explode('.', $base_url);
+      $split_start = explode('/', $split_base_url[0]);
+      $split_start[count($split_start) - 1] = $subdomain;
+      $split_base_url[0] = implode('/', $split_start);
+      $new_base_url = implode('.', $split_base_url);
+
+      $variables['options']['base_url'] = $new_base_url;
+      $url = $variables['url'];
+      $url->setAbsolute();
+      $variables['url'] = $url;
+      $variables['options']['absolute'] = TRUE;
+    }
   }
 }

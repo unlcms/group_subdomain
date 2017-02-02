@@ -52,13 +52,13 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
       $subdomain = explode('.', $host)[0];
 
       // if there is a subdomain
-      if (!empty($subdomain) && $subdomain !== 'www') {
+      if (!empty($subdomain) && $subdomain !== 'ucommrasmussen') {
         $group_path = \Drupal::service('path.alias_manager')->getPathByAlias('/' . $subdomain);
         if (preg_match('/group\/(\d+)/', $group_path, $matches)) {
           $group = Group::load($matches[1]);
         }
 
-        if ($group) {
+        if (isset($group)) {
           // stick the subdomain in front of the path
           $path = '/' . $subdomain . $path;
         }
@@ -78,11 +78,10 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
         $group = Group::load($matches[1]);
       }
 
-      if (count($array) >= 2 && $group) {
+      if (count($array) >= 2 && isset($group) && $group->get('field_use_subdomain')->getValue()[0]['value']) {
         array_shift($array);
         array_shift($array);
         $path = '/' . implode('/', $array);
-        // TODO do something to set domain in request?
       }
     }
     return $path;

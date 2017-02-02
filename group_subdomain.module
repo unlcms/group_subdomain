@@ -24,7 +24,7 @@ function group_subdomain_help($route_name, RouteMatchInterface $route_match) {
 function group_subdomain_token_info() {
   $info['tokens']['node']['group_subdomain'] = array(
     'name' => t('Group subdomain path'),
-    'description' => t('The subdomain of the organic group the node is in.'),
+    'description' => t('The subdomain of the Group the node is in.'),
   );
 
   return $info;
@@ -44,27 +44,13 @@ function group_subdomain_tokens($type, $tokens, array $data = array(), array $op
         case 'group_subdomain':
           // if the node data is set in the options
           if (isset($data['node'])) {
-            // need to get the organic group that this node belongs to
-            // this is in the node__og_audience table
-            // we get the first group audience defined
-            $og_audience_value = $data['node']->og_audience->getValue();
-            if (is_array($og_audience_value) && count($og_audience_value) > 0 && array_key_exists('target_id', $og_audience_value[0])) {
-              // this is a member of a group
-              $group_id = $og_audience_value[0]['target_id'];
-
-              # find the node with this id, and replace the key with its subdomain
-              if ($group_id != NULL) {
-                $group_node = Node::load($group_id);
-                if (!empty($group_node)) {
-                  $replacements[$original] = $group_node->group_subdomain->getValue()[0]['value'];
-                }
-              }
+            $group_content_array = GroupContent::loadByEntity($data['node']);
+            foreach ($group_content_array as $group_content) {
+              $group = $group_content->getGroup();
             }
-            else {
-              // this could be a group/site itself. Check if it is
-              if (!empty($subdomain = $data['node']->group_subdomain->getValue()[0]['value'])) {
-                $replacements[$original] = $subdomain;
-              }
+            if (isset($group)) {
+              $path = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
+              $replacements[$original] = substr($path, 1);
             }
           }
           break;
@@ -103,7 +89,7 @@ function group_subdomain_link_alter(&$variables) {
       }
     }
     if (isset($group) && $group->get('field_use_subdomain')->getValue()[0]['value']) {
-      // this is a member of a group
+      // Use Subdomain is activated.
       $subdomain = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
 
       // replace the subdomain in the base URL with this new one
@@ -119,6 +105,21 @@ function group_subdomain_link_alter(&$variables) {
       $variables['url'] = $url;
       $variables['options']['absolute'] = TRUE;
 
+    }
+    else {
+      // Use Subdomain is off - Need to switch domain to the main one
+      // replace the subdomain in the base URL with the main subdomain
+      $split_base_url = explode('.', $base_url);
+      $split_start = explode('/', $split_base_url[0]);
+      $split_start[count($split_start) - 1] = '/ucommrasmussen';
+      $split_base_url[0] = implode('/', $split_start);
+      $new_base_url = implode('.', $split_base_url);
+
+      $variables['options']['base_url'] = $new_base_url;
+      $url = $variables['url'];
+      $url->setAbsolute();
+      $variables['url'] = $url;
+      $variables['options']['absolute'] = TRUE;
     }
   }
   else if (preg_match('/^group\/(\d+)$/', $internal_path, $matches)) {

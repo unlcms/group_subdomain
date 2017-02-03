@@ -19,48 +19,6 @@ function group_subdomain_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_token_info().
- */
-function group_subdomain_token_info() {
-  $info['tokens']['node']['group_subdomain'] = array(
-    'name' => t('Group subdomain path'),
-    'description' => t('The subdomain of the Group the node is in.'),
-  );
-
-  return $info;
-}
-
-/**
- * Implements hook_tokens().
- */
-function group_subdomain_tokens($type, $tokens, array $data = array(), array $options = array()) {
-  $replacements = array();
-
-  if ($type == 'node') {
-    // for each token passed in
-    foreach ($tokens as $name => $original) {
-      // if its name is group_subdomain
-      switch ($name) {
-        case 'group_subdomain':
-          // if the node data is set in the options
-          if (isset($data['node'])) {
-            $group_content_array = GroupContent::loadByEntity($data['node']);
-            foreach ($group_content_array as $group_content) {
-              $group = $group_content->getGroup();
-            }
-            if (isset($group)) {
-              $path = \Drupal::service('path.alias_manager')->getAliasByPath('/group/' . $group->id());
-              $replacements[$original] = substr($path, 1);
-            }
-          }
-          break;
-      }
-    }
-  }
-  return $replacements;
-}
-
-/**
  * Implements hook_link_alter().
  * @param $variables The variables to alter. (text, url, options)
  */

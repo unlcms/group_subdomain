@@ -1,0 +1,17 @@
+{
+  "name": "unlcms/group_subdomain",
+  "description": "Assign subdomains to groups.",
+  "type": "drupal-module",
+  "authors": [
+    {
+      "name": "Tyler Lemburg (tlemburg)",
+      "homepage": "https://github.com/tlemburg",
+      "role": "Developer"
+    },
+    {
+      "name": "Eric Rasmussen (ericras)",
+      "homepage": "https://www.drupal.org/u/ericras",
+      "role": "Maintainer"
+    }
+  ]
+}

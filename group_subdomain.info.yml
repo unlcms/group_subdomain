@@ -6,3 +6,5 @@ package: 'Group'
 
 dependencies:
   - 'group'
+  
+configure: group_subdomain.settings

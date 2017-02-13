@@ -67,13 +67,11 @@ function group_subdomain_link_alter(&$variables) {
     else {
       // Use Subdomain is off - Need to switch domain to the main one
       // replace the subdomain in the base URL with the main subdomain
-      $split_base_url = explode('.', $base_url);
-      $split_start = explode('/', $split_base_url[0]);
-      $split_start[count($split_start) - 1] = '/ucommrasmussen';
-      $split_base_url[0] = implode('/', $split_start);
-      $new_base_url = implode('.', $split_base_url);
+      $config = \Drupal::config('group_subdomain.settings');
+      $parts = parse_url($base_url);
+      $default_base_url = $parts['scheme'] . '://' . $config->get('base_host') . $parts['path'];
 
-      $variables['options']['base_url'] = $new_base_url;
+      $variables['options']['base_url'] = $default_base_url;
       $url = $variables['url'];
       $url->setAbsolute();
       $variables['url'] = $url;

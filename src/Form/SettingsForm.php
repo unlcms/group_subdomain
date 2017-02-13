@@ -32,11 +32,11 @@ class SettingsForm extends ConfigFormBase {
 
     $config = $this->config('group_subdomain.settings');
 
-    $form['base_url'] = array(
+    $form['base_host'] = array(
       '#type' => 'textfield',
-      '#title' => 'Base URL',
-      '#description' => 'ie: https://unlcms.edu/',
-      '#default_value' => $config->get('base_url'),
+      '#title' => 'Base Host',
+      '#description' => 'ie: cms2.unl.edu (no slashes, no protocol)',
+      '#default_value' => $config->get('base_host'),
       '#required' => TRUE,
     );
     
@@ -56,7 +56,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('group_subdomain.settings');
 
-    $config->set('base_url', $form_state->getValue('base_url'));
+    $config->set('base_host', $form_state->getValue('base_host'));
 
     $config->save();
     parent::submitForm($form, $form_state);

@@ -1,0 +1,8 @@
+group_subdomain.settings:
+  path: '/admin/config/system/group_subdomain'
+  defaults:
+    _form: '\Drupal\group_subdomain\Form\SettingsForm'
+    _title: 'Configure the Group Subdomain module'
+  requirements:
+    _permission: 'administer site configuration'
+    

@@ -1,0 +1,6 @@
+group_subdomain.settings:
+  title: 'Group Subdomain'
+  description: 'Configure the Group Subdomain module'
+  parent: system.admin_config_system
+  route_name: group_subdomain.settings
+  weight: 1

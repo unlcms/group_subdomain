@@ -51,8 +51,10 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
       $host = $request->getHttpHost();
       $subdomain = explode('.', $host)[0];
 
+      $config = \Drupal::config('group_subdomain.settings');
+
       // if there is a subdomain
-      if (!empty($subdomain) && $subdomain !== 'ucommrasmussen') {
+      if (!empty($subdomain) && $host !== $config->get('base_host')) {
         $group_path = \Drupal::service('path.alias_manager')->getPathByAlias('/' . $subdomain);
         if (preg_match('/group\/(\d+)/', $group_path, $matches)) {
           $group = Group::load($matches[1]);

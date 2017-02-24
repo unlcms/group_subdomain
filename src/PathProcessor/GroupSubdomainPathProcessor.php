@@ -16,22 +16,27 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
 
   private function isPathSubbable($path) {
     $invalid_starting_paths = array(
-      '/system',
+      // These paths have pages that exist without the trailing slash.
       '/admin',
       '/node',
       '/user',
-      '/devel',
-      '/tips',
-      '/tree',
-      '/token',
-      '/editor',
-      '/themes',
-      '/quickedit',
-      '/contextual',
-      '/history',
-      '/core',
-      '/toolbar',
-      '/entity_reference_autocomplete'
+      // These system paths only exist with a trailing slash and additional
+      // params. Add a trailing slash to these so that a user can create content
+      // that lives at a path such as '/history' for a webpage about history.
+      '/group/',
+      '/system/',
+      '/devel/',
+      '/tips/',
+      '/tree/',
+      '/token/',
+      '/editor/',
+      '/themes/',
+      '/quickedit/',
+      '/contextual/',
+      '/history/',
+      '/core/',
+      '/toolbar/',
+      '/entity_reference_autocomplete/'
     );
 
     foreach ($invalid_starting_paths as $invalid_path) {

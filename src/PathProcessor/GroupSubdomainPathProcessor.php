@@ -63,6 +63,7 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
         if (isset($group)) {
           // stick the subdomain in front of the path
           $path = '/' . $subdomain . $path;
+          $path = rtrim($path, '/');
         }
       }
     }

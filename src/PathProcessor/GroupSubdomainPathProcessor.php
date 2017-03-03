@@ -18,12 +18,16 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
     $invalid_starting_paths = array(
       // These paths have pages that exist without the trailing slash.
       '/admin',
+      '/batch',
+      '/filter/tips',
+      '/imce',
       '/node',
       '/user',
       // These system paths only exist with a trailing slash and additional
       // params. Add a trailing slash to these so that a user can create content
       // that lives at a path such as '/history' for a webpage about history.
       '/group/',
+      '/cron/',
       '/system/',
       '/devel/',
       '/tips/',

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\group_subdomain;
+namespace Drupal\group_subdomain\Routing;
 
 use Drupal\Core\Routing\RouteProvider;
 

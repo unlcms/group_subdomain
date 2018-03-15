@@ -15,6 +15,6 @@ class GroupSubdomainServiceProvider extends ServiceProviderBase {
    */
   public function alter(ContainerBuilder $container) {
     $definition = $container->getDefinition('router.route_provider');
-    $definition->setClass('Drupal\group_subdomain\GroupSubdomainRouteProvider');
+    $definition->setClass('Drupal\group_subdomain\Routing\GroupSubdomainRouteProvider');
   }
 }

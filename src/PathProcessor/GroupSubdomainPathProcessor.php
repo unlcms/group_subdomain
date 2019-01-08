@@ -15,6 +15,11 @@ use Symfony\Component\HttpFoundation\Request;
 class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, OutboundPathProcessorInterface {
 
   private function isPathSubbable($path) {
+    if ($path == '/') {
+      return false;
+    }
+
+    // TODO: this needs to be converted to examine if the internal route is a designated internal Drupal route.
     $invalid_starting_paths = array(
       // These paths have pages that exist without the trailing slash.
       '/admin',
@@ -40,7 +45,8 @@ class GroupSubdomainPathProcessor implements InboundPathProcessorInterface, Outb
       '/history/',
       '/core/',
       '/toolbar/',
-      '/entity_reference_autocomplete/'
+      '/entity_reference_autocomplete/',
+      '/sites/default/files/',
     );
 
     foreach ($invalid_starting_paths as $invalid_path) {
